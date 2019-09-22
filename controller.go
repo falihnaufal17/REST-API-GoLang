@@ -8,7 +8,7 @@ import (
 
 func returnAllUsers(w http.ResponseWriter, r *http.Request) {
 	var users Users
-	var arr_user []Users
+	var arrUser []Users
 	var response Response
 
 	db := connect()
@@ -27,25 +27,25 @@ func returnAllUsers(w http.ResponseWriter, r *http.Request) {
 			if err := rows.Scan(&users.UserId, &users.Name, &users.Phone, &users.Location); err != nil {
 				log.Fatal(err.Error())
 			} else {
-				arr_user = append(arr_user, users)
+				arrUser = append(arrUser, users)
 			}
 		}
 
 		response.Status = 1
 		response.Message = "Success"
-		response.Data = arr_user
+		response.Data = arrUser
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	}
 }
 
-func insertUser(w http.ResponseWriter, r *http.Request){
-	var users Users
-	var arr_user []Users
+func insertUser(w http.ResponseWriter, r *http.Request) {
+	var user Users
+	var arrUser []Users
 	var response Response
 
-	db:=connect()
+	db := connect()
 	defer db.Close()
 
 	err := r.ParseMultipartForm(4096)
@@ -53,21 +53,22 @@ func insertUser(w http.ResponseWriter, r *http.Request){
 		panic(err)
 	}
 
-	type data struct {
-		name string = r.FormValue("name")
-		phone string = r.FormValue("phone")
-		location string = r.FormValue("location")
-	}
+	user.Name = r.FormValue("name")
+	user.Phone = r.FormValue("phone")
+	user.Location = r.FormValue("location")
 
-	_, err = db.Exec("INSERT INTO user SET ?", data)
+	_, err = db.Exec(`INSERT INTO user (name, phone, location) value (?, ?, ?)`, user.Name, user.Phone, user.Location)
 
-	if err != nil{
+	if err != nil {
 		log.Print(err)
 	}
 
+	arrUser = append(arrUser, user)
+
 	response.Status = 1
 	response.Message = "Success Add"
-	response.Data = data
+	response.Data = arrUser
+	log.Println("insert data : ", user, " Sukses")
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
